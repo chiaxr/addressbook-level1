@@ -52,14 +52,20 @@
   # does not match if none have keyword
   find 23912039120
   # matching should be case-sensitive
+  find -cs betsy
+  # case sensitive parameter should be located anywhere in command
+  find betsy -cs
+  
+  # matching should be case-insensitive
   find betsy
-
-  # find unique keyword
-  find Betsy
+  # find exact keyword
+  find -cs Betsy
   # find multiple with same keyword
   find Dickson
-  # find multiple with some keywords
-  find Charlie Betsy
+  # find multiple with case-sensitive keywords
+  find -cs Charlie betsy
+  # find multiple with case-insensitive keywords
+  find Charlie betsy
 
 ##########################################################
 # test delete person command
