@@ -107,8 +107,8 @@ public class AddressBook {
 
     private static final String COMMAND_FIND_WORD = "find";
     private static final String COMMAND_FIND_DESC = "Finds all persons whose names contain any of the specified "
-                                        + "keywords (case-sensitive) and displays them as a list with index numbers.";
-    private static final String COMMAND_FIND_PARAMETERS = "KEYWORD [MORE_KEYWORDS]";
+                                        + "keywords and displays them as a list with index numbers. Include -cs parameter for case-sensitivity.";
+    private static final String COMMAND_FIND_PARAMETERS = "-cs KEYWORD [MORE_KEYWORDS]";
     private static final String COMMAND_FIND_EXAMPLE = COMMAND_FIND_WORD + " alice bob charlie";
 
     private static final String COMMAND_LIST_WORD = "list";
@@ -444,14 +444,20 @@ public class AddressBook {
 
     /**
      * Finds and lists all persons in address book whose name contains any of the argument keywords.
-     * Keyword matching is case sensitive.
+     * Keyword matching can be both case sensitive or non-case sensitive.
      *
      * @param commandArgs full command args string from the user
      * @return feedback display message for the operation result
      */
     private static String executeFindPersons(String commandArgs) {
         final Set<String> keywords = extractKeywordsFromFindPersonArgs(commandArgs);
-        final ArrayList<String[]> personsFound = getPersonsWithNameContainingAnyKeyword(keywords);
+        ArrayList<String[]> personsFound;
+        if (commandArgs.contains("-cs")) {
+            personsFound = getPersonsWithNameContainingAnyKeywordCaseSensitive(keywords);
+        }
+        else {
+            personsFound = getPersonsWithNameContainingAnyKeywordNonCaseSensitive(keywords);
+        }
         showToUser(personsFound);
         return getMessageForPersonsDisplayedSummary(personsFound);
     }
@@ -477,16 +483,35 @@ public class AddressBook {
     }
 
     /**
-     * Retrieves all persons in the full model whose names contain some of the specified keywords.
+     * Retrieves all persons in the full model whose names contain some of the specified keywords (case sensitive).
      *
      * @param keywords for searching
      * @return list of persons in full model with name containing some of the keywords
      */
-    private static ArrayList<String[]> getPersonsWithNameContainingAnyKeyword(Collection<String> keywords) {
+    private static ArrayList<String[]> getPersonsWithNameContainingAnyKeywordCaseSensitive(Collection<String> keywords) {
         final ArrayList<String[]> matchedPersons = new ArrayList<>();
         for (String[] person : getAllPersonsInAddressBook()) {
             final Set<String> wordsInName = new HashSet<>(splitByWhitespace(getNameFromPerson(person)));
             if (!Collections.disjoint(wordsInName, keywords)) {
+                matchedPersons.add(person);
+            }
+        }
+        return matchedPersons;
+    }
+
+    /**
+     * Retrieves all persons in the full model whose names contain some of the specified keywords (non-case sensitive).
+     *
+     * @param keywords for searching
+     * @return list of persons in full model with name containing some of the keywords
+     */
+    private static ArrayList<String[]> getPersonsWithNameContainingAnyKeywordNonCaseSensitive(Collection<String> keywords) {
+        final ArrayList<String> keywords_uppercase = new ArrayList<String>(keywords);
+        keywords_uppercase.replaceAll(String::toUpperCase);
+        final ArrayList<String[]> matchedPersons = new ArrayList<>();
+        for (String[] person : getAllPersonsInAddressBook()) {
+            final Set<String> wordsInName = new HashSet<>(splitByWhitespace(getNameFromPerson(person).toUpperCase()));
+            if (!Collections.disjoint(wordsInName, keywords_uppercase)) {
                 matchedPersons.add(person);
             }
         }
